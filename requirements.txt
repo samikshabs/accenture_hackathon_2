@@ -1,0 +1,10 @@
+flask
+gunicorn
+flask
+gunicorn
+numpy
+pandas
+scikit-learn
+PyPDF2
+ollama
+request
