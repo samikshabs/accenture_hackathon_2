@@ -1,15 +1,10 @@
-from apimyllama import ApiMyLlama
-import requests
+import openai
+import os
 
-# Replace with your actual values
-OLLAMA_SERVER_IP = "localhost"
-OLLAMA_SERVER_PORT = "3001"
-OLLAMA_API_KEY = "80ad9712b6b7877d770d2d5e89f34612441d3940"  # Replace this with your key
-MODEL = "mistral"
+# Load your OpenAI API key from environment variable
+openai.api_key = os.getenv("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")
 
-api = ApiMyLlama(OLLAMA_SERVER_IP, OLLAMA_SERVER_PORT)
-
-def generate_summary_with_ollama(title, description):
+def generate_summary_with_openai(title, description):
     prompt = f"""
 You are an AI assistant that extracts structured information from job descriptions.
 
@@ -26,7 +21,15 @@ Job Title: {title}
 Job Description: {description}
 """
     try:
-        result = api.generate(OLLAMA_API_KEY, prompt, MODEL)
-        return result
-    except requests.RequestException as e:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # or "gpt-4" if available
+            messages=[
+                {"role": "system", "content": "You are an AI assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=700,
+            temperature=0.5
+        )
+        return response['choices'][0]['message']['content']
+    except Exception as e:
         return f"Error generating summary: {e}"
