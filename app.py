@@ -2,12 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 import os
 import numpy as np
-from agents.job_summary import generate_summary_with_ollama
+import openai
+from agents.job_summary import generate_summary_with_openai
 from agents.matching import match_candidates, get_embedding_dimension
 from utils.email_sender import send_interview_email
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your_secret_key')
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -109,7 +110,7 @@ def job_summary():
         try:
             title = request.form['title']
             description = request.form['job_description']
-            raw_summary = generate_summary_with_ollama(title, description)
+            raw_summary = generate_summary_with_openai(title, description)
 
             def extract_section(label, text):
                 start = text.find(label)
@@ -170,7 +171,7 @@ def schedule_interview(email):
         meeting_link = f"https://zoom.com/meet/{email.split('@')[0]}"
 
         # Optionally extract name from email or pass a static one
-        name = email.split('@')[0].capitalize()  # You can also query name if stored
+        name = email.split('@')[0].capitalize()
 
         # Send confirmation email
         send_interview_email(name, email, dt)
@@ -182,6 +183,6 @@ def schedule_interview(email):
 
 # ------------------- START -------------------
 
-# For gunicorn on Render
-app.run(host='0.0.0.0', port=10000)
-
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
